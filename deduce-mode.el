@@ -6,7 +6,7 @@
 
 ;; This file is NOT part of GNU Emacs
 
-;; Copyright (c) 2013-2016, Fanael Linithien
+;; Copyright (c) 2013-2016, Matei Cloteaux
 ;; All rights reserved.
 ;;
 ;; Redistribution and use in source and binary forms, with or without
