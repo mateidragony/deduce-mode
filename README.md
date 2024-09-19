@@ -23,5 +23,3 @@ For now you can install the package from the buffer. Open up `deduce-mode.el` an
 ```
 M-x package-install-from-buffer
 ```
-
-Enjoy 😁
