@@ -1,6 +1,7 @@
 ;;; deduce-mode.el --- sample major mode for editing deduce. -*- coding: utf-8; lexical-binding: t; -*-
 
 ;; Author: Matei Cloteaux <matei.cloteaux@gmail.com>
+;; URL: https://github.com/mateidragony/deduce-mode
 ;; Version: 0.0.1
 ;; Package-Requires ((emacs "24") (haskell-mode "1")) 
 
