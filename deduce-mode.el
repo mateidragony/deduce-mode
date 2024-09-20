@@ -58,7 +58,7 @@
 (setq deduce-keywords '("define" "function" "λ" "fun" "switch" "case" "union" "if" "then" "else" "@" ":" "=" "import" "generic" "assert" "have"))
 
 (defvar deduce-proof-keywords nil "deduce proof keywords")
-(setq deduce-proof-keywords '("conclude" "suffices" "by" "rewrite" "conjunct" "induction" "where" "suppose" "..." "with" "definition" "apply" "to" "cases" "obtain" "enable" "stop" "equations" "of" "arbitrary" "choose" "term" "from" "assume" "for"))
+(setq deduce-proof-keywords '("conclude" "suffices" "enough" "by" "rewrite" "conjunct" "induction" "where" "suppose" "..." "with" "definition" "apply" "to" "cases" "obtain" "enable" "stop" "equations" "of" "arbitrary" "choose" "term" "from" "assume" "for"))
 
 (defvar deduce-theorem-keywords nil "deduce theorem keywords")
 (setq deduce-theorem-keywords '("theorem" "lemma" "proof" "end"))
