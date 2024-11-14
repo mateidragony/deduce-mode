@@ -40,8 +40,34 @@
 
 ;;; Code:
 
+;; (defvar deduce-prims nil "deduce primitives")
+;; (setq deduce-prims "[0-9]+\\|true\\|false\\|∅\\|\\[0\\]\\|?")
+
+;; (defvar deduce-proof-hi nil "deduce proof his???")
+;; (setq deduce-proof-hi "")
+
+;; (defvar deduce-types nil "deduce primitive types")
+;; (setq deduce-types "int\\|bool\\|fn\\|type")
+
+;; (defvar deduce-functions nil "deduce functions")
+;; (setq deduce-functions "in\\|and\\|or\\|print\\|not\\|some\\|all")
+
+;; (defvar deduce-keywords nil "deduce keywords")
+;; (setq deduce-keywords "define\\|function\\|λ\\|fun\\|switch\\|case\\|union\\|if\\|then\\|else\\|@\\|:\\|=\\|import\\|generic\\|assert\\|have")
+
+;; (defvar deduce-proof-keywords nil "deduce proof keywords")
+;; (setq deduce-proof-keywords "conclude\\|suffices\\|enough\\|by\\|rewrite\\|conjunct\\|induction\\|where\\|suppose\\|\\.\\.\\.\\|with\\|definition\\|apply\\|to\\|cases\\|obtain\\|enable\\|stop\\|equations\\|of\\|arbitrary\\|choose\\|term\\|from\\|assume\\|for\\|recall\\|transitive\\|symmetric\\|extensionality\\|reflexive\\|injective\\|sorry\\|help")
+
+;; (defvar deduce-theorem-keywords nil "deduce theorem keywords")
+;; (setq deduce-theorem-keywords "theorem\\|lemma\\|proof\\|end")
+
+(defvar deduce-operators nil "deduce operators")
+(setq deduce-operators "->\\|++\\|/\\||\\|&\\|\\\[+\\\]\\|\\\[o\\\]\\|(=\\|<=\\|>=\\|/=\\|≠\\|⊆\\|≤\\|<\\|≥\\|∈\\|∪\\|+\\|%\\|*\\|⨄\\|-\\|∩\\|∘\\|>")
+
+
+
 (defvar deduce-prims nil "deduce primitives")
-(setq deduce-prims '("0" "true" "false" "∅" "[0]" "?"))
+(setq deduce-prims '("0" "true" "false" "∅" "\\[0\\]" "\\?"))
 
 (defvar deduce-proof-hi nil "deduce proof his???")
 (setq deduce-proof-hi '("transitive" "symmetric" "extensionality" "reflexive" "injective" "sorry" "help"))
@@ -49,14 +75,17 @@
 (defvar deduce-types nil "deduce primitive types")
 (setq deduce-types '("int" "bool" "fn" "type"))
 
+(defvar deduce-lib-types nil "deduce library types")
+(setq deduce-lib-types '("MultiSet" "Option" "Pair" "Set" "List" "Int" "Nat"))
+
 (defvar deduce-functions nil "deduce functions")
 (setq deduce-functions '("in" "and" "or" "print" "not" "some" "all"))
 
 (defvar deduce-keywords nil "deduce keywords")
-(setq deduce-keywords '("define" "function" "λ" "fun" "switch" "case" "union" "if" "then" "else" "@" ":" "=" "import" "generic" "assert" "have"))
+(setq deduce-keywords '("define" "function" "fun" "switch" "case" "union" "if" "then" "else" "import" "generic" "assert" "have" "λ" "@" ":" "="))
 
 (defvar deduce-proof-keywords nil "deduce proof keywords")
-(setq deduce-proof-keywords '("conclude" "suffices" "enough" "by" "rewrite" "conjunct" "induction" "where" "suppose" "..." "with" "definition" "apply" "to" "cases" "obtain" "enable" "stop" "equations" "of" "arbitrary" "choose" "term" "from" "assume" "for" "recall"))
+(setq deduce-proof-keywords '("conclude" "suffices" "enough" "by" "rewrite" "conjunct" "induction" "where" "suppose" "\\.\\.\\." "with" "definition" "apply" "to" "cases" "obtain" "enable" "stop" "equations" "of" "arbitrary" "choose" "term" "from" "assume" "for" "recall"))
 
 (defvar deduce-theorem-keywords nil "deduce theorem keywords")
 (setq deduce-theorem-keywords '("theorem" "lemma" "proof" "end"))
@@ -64,43 +93,69 @@
 
 (defvar deduce-fontlock nil "list for font-lock-defaults")
 (setq deduce-fontlock
-      (let (dprims-regex dpfhi-regex dtypes-regex dfunctions-regex
+      (let (dprims-regex dtypes-regex dfunctions-regex dlibtypes-regex
 			 dkeywords-regex dpfkeywords-regex dthmkeywords-regex)
-            (setq dprims-regex (regexp-opt deduce-prims 'words))
-            (setq dpfhi-regex  (regexp-opt deduce-proof-hi 'words))
-            (setq dtypes-regex (regexp-opt deduce-types 'words))
-            (setq dfunctions-regex (regexp-opt deduce-functions 'words))
-            (setq dkeywords-regex (regexp-opt deduce-keywords 'words))
-            (setq dpfkeywords-regex (regexp-opt deduce-proof-keywords 'words))
-            (setq dthmkeywords-regex (regexp-opt deduce-theorem-keywords 'words))
-	    
-            (list
-	     (cons "//"                  'font-lock-comment-delimiter-face)
-             (cons "//\\(.*\\)"          (list 1 'font-lock-comment-face))
-             (cons dkeywords-regex       'font-lock-keyword-face)
-             (cons dpfkeywords-regex     'font-lock-keyword-face)
-             (cons dpfhi-regex           'font-lock-constant-face)
-             (cons dthmkeywords-regex    'font-lock-keyword-face)
-             (cons dtypes-regex          'font-lock-type-face)
-             (cons dprims-regex          'font-lock-constant-face)
-             (cons dfunctions-regex      'font-lock-function-name-face)
-	     (cons "->\\|++\\|/\\||\\|&\\|\\\[+\\\]\\|\\\[o\\\]\\|(=\\|<=\\|>=\\|/=\\|≠\\|⊆\\|≤\\|<\\|≥\\|∈\\|∪\\|+\\|%\\|*\\|⨄\\|-\\|∩\\|∘\\|>" 'font-lock-constant-face))))
+	(setq dpfkeywords-regex (regexp-opt deduce-proof-keywords 'words))
+	(setq dthmkeywords-regex (regexp-opt deduce-theorem-keywords 'words))
+	(setq dprims-regex (regexp-opt deduce-prims 'words))
+        (setq dtypes-regex (regexp-opt deduce-types 'words))
+	(setq dlibtypes-regex (regexp-opt deduce-lib-types 'words))
+        (setq dfunctions-regex (regexp-opt deduce-functions 'words))
+        (setq dkeywords-regex (regexp-opt deduce-keywords 'words))    
+	
+	(list
+	 (cons "function\\(.+?\\)\(" (list 1 'font-lock-function-name-face))
+	 (cons "define\\([^:]+?\\):" (list 1 'font-lock-function-name-face))
+	 (cons "define\\([^:]+?\\)=" (list 1 'font-lock-function-name-face))
+	 
+	 (cons dkeywords-regex            'font-lock-keyword-face)
+	 (cons dthmkeywords-regex         'font-lock-keyword-face)
+	 (cons dpfkeywords-regex          'font-lock-keyword-face)
+	 
+	 (cons dprims-regex               'font-lock-constant-face)
+	 (cons deduce-operators           'font-lock-constant-face)
+	 (cons "\\<[0-9]+\\>"             'font-lock-constant-face)
+	 
+	 (cons dtypes-regex               'font-lock-builtin-face)
+	 (cons dlibtypes-regex            'font-lock-type-face)
+	 (cons dfunctions-regex           'font-lock-function-name-face)	 
+	 ))
+      )
 
 (defun deduce-indent-line ()
   (if (eq (point) 1)
       (insert "\t")
     (insert (concat (number-to-string (point)) " - " (number-to-string (pos-bol))))))
 
+(defun deduce-comment-syntax-table ()
+  "Set local syntax table, and re-color buffer."
+  (interactive)
+  (let ((synTable (make-syntax-table)))
+    (modify-syntax-entry ?\/ ". 12b" synTable)
+    (modify-syntax-entry ?\n "> b" synTable)
+    (set-syntax-table synTable)
+    (font-lock-fontify-buffer)))
+
 ;;;###autoload
 (define-derived-mode deduce-mode nil "deduce mode"
-      "Major mode for editing Deduce languge"
-      (setq font-lock-defaults '((deduce-fontlock)))
-;;      (setq indent-line-function 'deduce-indent-line)
-      (setq tab-width 2)
-      (setq newline-and-indent nil)
-      (setq-local comment-start "//")
-      (setq-local comment-end ""))
+  "Major mode for editing Deduce languge"
 
+  (setq font-lock-defaults '((deduce-fontlock)))
+  
+  (let ((synTable (make-syntax-table)))
+    (modify-syntax-entry ?\/ ". 124" synTable)
+    (modify-syntax-entry ?* ". 23b" synTable)
+    (modify-syntax-entry ?\n ">" synTable)
+    (set-syntax-table synTable)
+    (font-lock-fontify-buffer))
+  
+  (setq tab-width 2)
+  (setq newline-and-indent nil)
+  (setq-local comment-start "//")
+  (setq-local comment-end ""))
+
+
+;; (setq indent-line-function 'deduce-indent-line)
 
 
 (provide 'deduce-mode)
