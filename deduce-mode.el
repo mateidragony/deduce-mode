@@ -3,11 +3,11 @@
 ;; Author: Matei Cloteaux <matei.cloteaux@gmail.com>
 ;; URL: https://github.com/mateidragony/deduce-mode
 ;; Version: 0.0.1
-;; Package-Requires ((emacs "24") (haskell-mode "1")) 
+;; Package-Requires ((emacs "24") (el-indent)) 
 
 ;; This file is NOT part of GNU Emacs
 
-;; Copyright (c) 2013-2016, Matei Cloteaux
+;; Copyright (c) 2024, Matei Cloteaux
 ;; All rights reserved.
 ;;
 ;; Redistribution and use in source and binary forms, with or without
@@ -40,8 +40,6 @@
 
 ;;; Code:
 
-(require 'haskell-mode)
-
 (defvar deduce-prims nil "deduce primitives")
 (setq deduce-prims '("0" "true" "false" "∅" "[0]" "?"))
 
@@ -66,7 +64,8 @@
 
 (defvar deduce-fontlock nil "list for font-lock-defaults")
 (setq deduce-fontlock
-      (let (dprims-regex dpfhi-regex dtypes-regex dfunctions-regex dkeywords-regex dpfkeywords-regex dthmkeywords-regex)
+      (let (dprims-regex dpfhi-regex dtypes-regex dfunctions-regex
+			 dkeywords-regex dpfkeywords-regex dthmkeywords-regex)
             (setq dprims-regex (regexp-opt deduce-prims 'words))
             (setq dpfhi-regex  (regexp-opt deduce-proof-hi 'words))
             (setq dtypes-regex (regexp-opt deduce-types 'words))
@@ -76,19 +75,33 @@
             (setq dthmkeywords-regex (regexp-opt deduce-theorem-keywords 'words))
 	    
             (list
-              (cons dkeywords-regex       'font-lock-keyword-face)
-              (cons dpfkeywords-regex     'font-lock-keyword-face)
-              (cons dpfhi-regex           'font-lock-constant-face)
-              (cons dthmkeywords-regex    'font-lock-keyword-face)
-              (cons dtypes-regex          'font-lock-type-face)
-              (cons dprims-regex          'font-lock-constant-face)
-              (cons dfunctions-regex      'font-lock-function-name-face)
-	      (cons "->\\|++\\|/\\||\\|&\\|\\\[+\\\]\\|\\\[o\\\]\\|(=\\|<=\\|>=\\|/=\\|≠\\|⊆\\|≤\\|<\\|≥\\|∈\\|∪\\|+\\|%\\|*\\|⨄\\|-\\|∩\\|∘\\|>" 'font-lock-constant-face))))
+	     (cons "//"                  'font-lock-comment-delimiter-face)
+             (cons "//\\(.*\\)"          (list 1 'font-lock-comment-face))
+             (cons dkeywords-regex       'font-lock-keyword-face)
+             (cons dpfkeywords-regex     'font-lock-keyword-face)
+             (cons dpfhi-regex           'font-lock-constant-face)
+             (cons dthmkeywords-regex    'font-lock-keyword-face)
+             (cons dtypes-regex          'font-lock-type-face)
+             (cons dprims-regex          'font-lock-constant-face)
+             (cons dfunctions-regex      'font-lock-function-name-face)
+	     (cons "->\\|++\\|/\\||\\|&\\|\\\[+\\\]\\|\\\[o\\\]\\|(=\\|<=\\|>=\\|/=\\|≠\\|⊆\\|≤\\|<\\|≥\\|∈\\|∪\\|+\\|%\\|*\\|⨄\\|-\\|∩\\|∘\\|>" 'font-lock-constant-face))))
+
+(defun deduce-indent-line ()
+  (if (eq (point) 1)
+      (insert "\t")
+    (insert (concat (number-to-string (point)) " - " (number-to-string (pos-bol))))))
 
 ;;;###autoload
-(define-derived-mode deduce-mode haskell-mode "deduce mode"
+(define-derived-mode deduce-mode nil "deduce mode"
       "Major mode for editing Deduce languge"
-      (setq font-lock-defaults '((deduce-fontlock))))
+      (setq font-lock-defaults '((deduce-fontlock)))
+;;      (setq indent-line-function 'deduce-indent-line)
+      (setq tab-width 2)
+      (setq newline-and-indent nil)
+      (setq-local comment-start "//")
+      (setq-local comment-end ""))
+
+
 
 (provide 'deduce-mode)
 
