@@ -3,7 +3,7 @@
 ;; Author: Matei Cloteaux <matei.cloteaux@gmail.com>
 ;; URL: https://github.com/mateidragony/deduce-mode
 ;; Version: 0.0.1
-;; Package-Requires ((emacs "24") (el-indent)) 
+;; Package-Requires ((emacs "24") (el-indent))
 
 ;; This file is NOT part of GNU Emacs
 
@@ -94,32 +94,32 @@
 (defvar deduce-fontlock nil "list for font-lock-defaults")
 (setq deduce-fontlock
       (let (dprims-regex dtypes-regex dfunctions-regex dlibtypes-regex
-			 dkeywords-regex dpfkeywords-regex dthmkeywords-regex)
-	(setq dpfkeywords-regex (regexp-opt deduce-proof-keywords 'words))
-	(setq dthmkeywords-regex (regexp-opt deduce-theorem-keywords 'words))
-	(setq dprims-regex (regexp-opt deduce-prims 'words))
+                         dkeywords-regex dpfkeywords-regex dthmkeywords-regex)
+        (setq dpfkeywords-regex (regexp-opt deduce-proof-keywords 'words))
+        (setq dthmkeywords-regex (regexp-opt deduce-theorem-keywords 'words))
+        (setq dprims-regex (regexp-opt deduce-prims 'words))
         (setq dtypes-regex (regexp-opt deduce-types 'words))
-	(setq dlibtypes-regex (regexp-opt deduce-lib-types 'words))
+        (setq dlibtypes-regex (regexp-opt deduce-lib-types 'words))
         (setq dfunctions-regex (regexp-opt deduce-functions 'words))
-        (setq dkeywords-regex (regexp-opt deduce-keywords 'words))    
-	
-	(list
-	 (cons "function\\(.+?\\)\(" (list 1 'font-lock-function-name-face))
-	 (cons "define\\([^:]+?\\):" (list 1 'font-lock-function-name-face))
-	 (cons "define\\([^:]+?\\)=" (list 1 'font-lock-function-name-face))
-	 
-	 (cons dkeywords-regex            'font-lock-keyword-face)
-	 (cons dthmkeywords-regex         'font-lock-keyword-face)
-	 (cons dpfkeywords-regex          'font-lock-keyword-face)
-	 
-	 (cons dprims-regex               'font-lock-constant-face)
-	 (cons deduce-operators           'font-lock-constant-face)
-	 (cons "\\<[0-9]+\\>"             'font-lock-constant-face)
-	 
-	 (cons dtypes-regex               'font-lock-builtin-face)
-	 (cons dlibtypes-regex            'font-lock-type-face)
-	 (cons dfunctions-regex           'font-lock-function-name-face)	 
-	 ))
+        (setq dkeywords-regex (regexp-opt deduce-keywords 'words))
+
+        (list
+         (cons "function\\(.+?\\)\(" (list 1 'font-lock-function-name-face))
+         (cons "define\\([^:]+?\\):" (list 1 'font-lock-function-name-face))
+         (cons "define\\([^:]+?\\)=" (list 1 'font-lock-function-name-face))
+
+         (cons dkeywords-regex            'font-lock-keyword-face)
+         (cons dthmkeywords-regex         'font-lock-keyword-face)
+         (cons dpfkeywords-regex          'font-lock-keyword-face)
+
+         (cons dprims-regex               'font-lock-constant-face)
+         (cons deduce-operators           'font-lock-constant-face)
+         (cons "\\<[0-9]+\\>"             'font-lock-constant-face)
+
+         (cons dtypes-regex               'font-lock-builtin-face)
+         (cons dlibtypes-regex            'font-lock-type-face)
+         (cons dfunctions-regex           'font-lock-function-name-face)
+         ))
       )
 
 (defun deduce-indent-line ()
@@ -136,27 +136,42 @@
     (set-syntax-table synTable)
     (font-lock-fontify-buffer)))
 
+(defun deduce-load ()
+  (interactive)
+  (unless (boundp 'deduce-path)
+    (error "Deduce: I can't find Deduce!"))
+  (let ((python-path (if (boundp 'python-shell-interpreter) python-shell-interpreter "python3")))
+    (compile (format "%s %s %s" python-path deduce-path buffer-file-name))))
+
+(defvar deduce-mode-map
+  (let ((map (make-keymap)))
+    (define-key map (kbd "C-c C-l") 'deduce-load)
+    map))
+
 ;;;###autoload
-(define-derived-mode deduce-mode nil "deduce mode"
-  "Major mode for editing Deduce languge"
+(define-derived-mode deduce-mode prog-mode "Deduce"
+  "Major mode for editing the Deduce proof languge
+ Special commands: \\{deduce-mode-map}"
+  (use-local-map deduce-mode-map)
 
   (setq font-lock-defaults '((deduce-fontlock)))
-  
+
   (let ((synTable (make-syntax-table)))
     (modify-syntax-entry ?\/ ". 124" synTable)
     (modify-syntax-entry ?* ". 23b" synTable)
     (modify-syntax-entry ?\n ">" synTable)
     (set-syntax-table synTable)
     (font-lock-fontify-buffer))
-  
+
   (setq tab-width 2)
   (setq newline-and-indent nil)
   (setq-local comment-start "//")
   (setq-local comment-end ""))
 
-
 ;; (setq indent-line-function 'deduce-indent-line)
 
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.pf\\'" . deduce-mode))
 
 (provide 'deduce-mode)
 
