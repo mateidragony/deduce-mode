@@ -138,6 +138,7 @@
 
 (defun deduce-load ()
   (interactive)
+  (save-buffer)
   (unless (boundp 'deduce-path)
     (error "Deduce: I can't find Deduce!"))
   (let ((python-path (if (boundp 'python-shell-interpreter) python-shell-interpreter "python3")))
