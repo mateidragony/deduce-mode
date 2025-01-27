@@ -40,31 +40,8 @@
 
 ;;; Code:
 
-;; (defvar deduce-prims nil "deduce primitives")
-;; (setq deduce-prims "[0-9]+\\|true\\|false\\|∅\\|\\[0\\]\\|?")
-
-;; (defvar deduce-proof-hi nil "deduce proof his???")
-;; (setq deduce-proof-hi "")
-
-;; (defvar deduce-types nil "deduce primitive types")
-;; (setq deduce-types "int\\|bool\\|fn\\|type")
-
-;; (defvar deduce-functions nil "deduce functions")
-;; (setq deduce-functions "in\\|and\\|or\\|print\\|not\\|some\\|all")
-
-;; (defvar deduce-keywords nil "deduce keywords")
-;; (setq deduce-keywords "define\\|function\\|λ\\|fun\\|switch\\|case\\|union\\|if\\|then\\|else\\|@\\|:\\|=\\|import\\|generic\\|assert\\|have")
-
-;; (defvar deduce-proof-keywords nil "deduce proof keywords")
-;; (setq deduce-proof-keywords "conclude\\|suffices\\|enough\\|by\\|rewrite\\|conjunct\\|induction\\|where\\|suppose\\|\\.\\.\\.\\|with\\|definition\\|apply\\|to\\|cases\\|obtain\\|enable\\|stop\\|equations\\|of\\|arbitrary\\|choose\\|term\\|from\\|assume\\|for\\|recall\\|transitive\\|symmetric\\|extensionality\\|reflexive\\|injective\\|sorry\\|help")
-
-;; (defvar deduce-theorem-keywords nil "deduce theorem keywords")
-;; (setq deduce-theorem-keywords "theorem\\|lemma\\|proof\\|end")
-
 (defvar deduce-operators nil "deduce operators")
 (setq deduce-operators "->\\|++\\|/\\||\\|&\\|\\\[+\\\]\\|\\\[o\\\]\\|(=\\|<=\\|>=\\|/=\\|≠\\|⊆\\|≤\\|<\\|≥\\|∈\\|∪\\|+\\|%\\|*\\|⨄\\|-\\|∩\\|∘\\|>")
-
-
 
 (defvar deduce-prims nil "deduce primitives")
 (setq deduce-prims '("0" "true" "false" "∅" "\\[0\\]" "\\?"))
@@ -122,10 +99,10 @@
          ))
       )
 
-(defun deduce-indent-line ()
-  (if (eq (point) 1)
-      (insert "\t")
-    (insert (concat (number-to-string (point)) " - " (number-to-string (pos-bol))))))
+(defun deduce-tab ()
+  "Insert tab character for tab key"
+  (interactive)
+  (insert "  "))
 
 (defun deduce-comment-syntax-table ()
   "Set local syntax table, and re-color buffer."
@@ -165,9 +142,11 @@
     (font-lock-fontify-buffer))
 
   (setq tab-width 2)
-  (setq newline-and-indent nil)
+  (setq default-tab-width 2)
   (setq-local comment-start "//")
-  (setq-local comment-end ""))
+  (setq-local comment-end "")
+  (setq indent-line-function nil)
+  (local-set-key (kbd "TAB") 'deduce-tab))
 
 ;; (setq indent-line-function 'deduce-indent-line)
 
