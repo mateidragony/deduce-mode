@@ -7,7 +7,7 @@
 
 ;; This file is NOT part of GNU Emacs
 
-;; Copyright (c) 2024, Matei Cloteaux
+;; Copyright (c) 2025, Matei Cloteaux
 ;; All rights reserved.
 ;;
 ;; Redistribution and use in source and binary forms, with or without
@@ -40,10 +40,11 @@
 
 ;;; Code:
 
-;; -----------------------
-;; Syntax Highlighting
-;; -----------------------
+;; Require statements for deduce-mode
+(require 'prog-mode)       ; For deriving from prog-mode
+(require 'font-lock)       ; For syntax highlighting
 
+;; Syntax Highlighting
 (defvar deduce-operators nil "deduce operators")
 (setq deduce-operators '("->" "++" "/" "|" "&" "[+]" "[o]" "(=" "<=" ">=" "/=" "≠" "⊆" "≤" "<" "≥" "∈" "∪" "+" "%" "*" "⨄" "-" "∩" "∘" ">"))
 
@@ -106,10 +107,8 @@
     (set-syntax-table synTable)
     (font-lock-fontify-buffer)))
 
-;; -----------------------
-;; Indentation
-;; -----------------------
 
+;; Indentation
 (defun deduce--list-or (ls)
   "fold or over ls"
   (if (null ls) nil (or (car ls) (deduce--list-or (cdr ls)))))
@@ -252,10 +251,7 @@
 	     (forward-char n))
      (t (indent-line-to 0)))))
 
-;; -----------------------
 ;; Load extension
-;; -----------------------
-
 (defun deduce-load ()
   (interactive)
   (save-buffer)
@@ -292,6 +288,30 @@
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.pf\\'"  . deduce-mode))
+
+
+;; autocomplete
+(defconst company-deduce-keywords
+  (append deduce-keywords deduce-proof-keywords))
+
+;; Set up company-mode if it is available
+(when (featurep 'company)
+  (require 'company) ; Ensure company is loaded
+  ;; Define company backend
+  (defun company-deduce-backend (command &optional arg &rest ignored)
+    "Company backend for Deduce mode."
+    (interactive (list 'interactive))
+    (case command
+	  (interactive (company-begin-backend 'company-deduce-backend))
+	  (prefix (and (eq major-mode 'deduce-mode)
+                       (company-grab-symbol)))
+	  (candidates (all-completions arg deduce-keywords))
+	  (meta (format "This value is named %s" arg))))
+
+  (add-to-list 'company-backends 'company-deduce-backend)
+
+  ;; Enable company-mode when deduce-mode is active
+  (add-hook 'deduce-mode-hook 'company-mode))
 
 (provide 'deduce-mode)
 
