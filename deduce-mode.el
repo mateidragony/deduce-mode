@@ -63,7 +63,7 @@
 (setq deduce-keywords '("define" "function" "fun" "switch" "case" "union" "if" "then" "else" "import" "generic" "assert" "have" "λ" "@" ":" "="))
 
 (defvar deduce-proof-keywords nil "deduce proof keywords")
-(setq deduce-proof-keywords '("conclude" "suffices" "enough" "by" "rewrite" "conjunct" "induction" "where" "suppose" "\\.\\.\\." "with" "definition" "apply" "to" "cases" "obtain" "enable" "stop" "equations" "of" "arbitrary" "choose" "term" "from" "assume" "for" "recall" "transitive" "symmetric" "extensionality" "reflexive" "injective" "sorry" "help"))
+(setq deduce-proof-keywords '("conclude" "suffices" "enough" "by" "rewrite" "conjunct" "induction" "where" "suppose" "\\.\\.\\." "with" "definition" "apply" "to" "cases" "obtain" "enable" "stop" "equations" "of" "arbitrary" "choose" "term" "from" "assume" "for" "recall" "transitive" "symmetric" "extensionality" "reflexive" "injective" "sorry" "help" "evaluate"))
 
 (defvar deduce-theorem-keywords nil "deduce theorem keywords")
 (setq deduce-theorem-keywords '("theorem" "lemma" "proof" "end"))
@@ -83,7 +83,7 @@
 
         (list
          (cons "function\\(.+?\\)\("  (list 1 'font-lock-function-name-face))
-         (cons "define\\([^:]+?\\):"  (list 1 'font-lock-function-name-face))
+         (cons "define\\([^:=]+?\\):"  (list 1 'font-lock-function-name-face))
          (cons "define\\([^:=]+?\\)="  (list 1 'font-lock-function-name-face))
 	 (cons "theorem\\([^:]+?\\):" (list 1 'font-lock-function-name-face))
 
