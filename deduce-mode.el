@@ -84,7 +84,7 @@
         (list
          (cons "function\\(.+?\\)\("  (list 1 'font-lock-function-name-face))
          (cons "define\\([^:]+?\\):"  (list 1 'font-lock-function-name-face))
-         (cons "define\\([^:]+?\\)="  (list 1 'font-lock-function-name-face))
+         (cons "define\\([^:=]+?\\)="  (list 1 'font-lock-function-name-face))
 	 (cons "theorem\\([^:]+?\\):" (list 1 'font-lock-function-name-face))
 
          (cons dkeywords-regex            'font-lock-keyword-face)
