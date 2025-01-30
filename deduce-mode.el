@@ -45,10 +45,13 @@
 ;; -----------------------
 
 (defvar deduce-operators nil "deduce operators")
-(setq deduce-operators "->\\|++\\|/\\||\\|&\\|\\\[+\\\]\\|\\\[o\\\]\\|(=\\|<=\\|>=\\|/=\\|≠\\|⊆\\|≤\\|<\\|≥\\|∈\\|∪\\|+\\|%\\|*\\|⨄\\|-\\|∩\\|∘\\|>")
+(setq deduce-operators '("->" "++" "/" "|" "&" "[+]" "[o]" "(=" "<=" ">=" "/=" "≠" "⊆" "≤" "<" "≥" "∈" "∪" "+" "%" "*" "⨄" "-" "∩" "∘" ">"))
 
-(defvar deduce-prims nil "deduce primitives")
-(setq deduce-prims '("0" "true" "false" "∅" "\\[0\\]" "\\?"))
+(defvar deduce-prims-syms nil "deduce primitives")
+(setq deduce-prims-syms '("0" "∅" "[0]" "?"))
+
+(defvar deduce-prims nil "deduce primitives words")
+(setq deduce-prims '("true" "false" "in" "fun"))
 
 (defvar deduce-types nil "deduce primitive types")
 (setq deduce-types '("int" "bool" "fn" "type"))
@@ -56,50 +59,43 @@
 (defvar deduce-lib-types nil "deduce library types")
 (setq deduce-lib-types '("MultiSet" "Option" "Pair" "Set" "List" "Int" "Nat"))
 
-(defvar deduce-functions nil "deduce functions")
-(setq deduce-functions '("in" "and" "or" "print" "not" "some" "all"))
-
 (defvar deduce-keywords nil "deduce keywords")
-(setq deduce-keywords '("define" "function" "fun" "switch" "case" "union" "if" "then" "else" "import" "generic" "assert" "have" "λ" "@" ":" "="))
+(setq deduce-keywords '("define" "function" "switch" "case" "union" "if" "then" "else" "import" "generic" "assert" "have" "and" "or" "print" "not" "some" "all"))
 
 (defvar deduce-proof-keywords nil "deduce proof keywords")
-(setq deduce-proof-keywords '("conclude" "suffices" "enough" "by" "rewrite" "conjunct" "induction" "where" "suppose" "\\.\\.\\." "with" "definition" "apply" "to" "cases" "obtain" "enable" "stop" "equations" "of" "arbitrary" "choose" "term" "from" "assume" "for" "recall" "transitive" "symmetric" "extensionality" "reflexive" "injective" "sorry" "help" "evaluate"))
+(setq deduce-proof-keywords '("conclude" "suffices" "enough" "by" "rewrite" "conjunct" "induction" "where" "suppose" "with" "definition" "apply" "to" "cases" "obtain" "enable" "stop" "equations" "of" "arbitrary" "choose" "term" "from" "assume" "for" "recall" "transitive" "symmetric" "extensionality" "reflexive" "injective" "sorry" "help" "evaluate" "theorem" "lemma" "proof" "end"))
 
-(defvar deduce-theorem-keywords nil "deduce theorem keywords")
-(setq deduce-theorem-keywords '("theorem" "lemma" "proof" "end"))
-
+(defun deduce--word-regex (word)
+  "Construct deduce word regex"
+  (concat "^\\([^ \t]*[ \t]+\\)?" word "\\([ \t:]+.*\\)?$"))
 
 (defvar deduce-fontlock nil "list for font-lock-defaults")
 (setq deduce-fontlock
-      (let (dprims-regex dtypes-regex dfunctions-regex dlibtypes-regex
-                         dkeywords-regex dpfkeywords-regex dthmkeywords-regex)
-        (setq dpfkeywords-regex (regexp-opt deduce-proof-keywords 'words))
-        (setq dthmkeywords-regex (regexp-opt deduce-theorem-keywords 'words))
-        (setq dprims-regex (regexp-opt deduce-prims 'words))
-        (setq dtypes-regex (regexp-opt deduce-types 'words))
-        (setq dlibtypes-regex (regexp-opt deduce-lib-types 'words))
-        (setq dfunctions-regex (regexp-opt deduce-functions 'words))
-        (setq dkeywords-regex (regexp-opt deduce-keywords 'words))
+      (let  ((operators-regex        (regexp-opt deduce-operators 'symbols))
+	     (prims-syms-regex       (regexp-opt deduce-prims-syms 'symbols))
+	     (prims-regex            (regexp-opt deduce-prims 'symbols))
+	     (types-regex            (regexp-opt deduce-types 'symbols))
+	     (lib-types-regex        (regexp-opt deduce-lib-types 'symbols))
+	     (keywords-regex         (regexp-opt deduce-keywords 'symbols))
+	     (proof-keywords-regex   (regexp-opt deduce-proof-keywords 'symbols)))
 
         (list
-         (cons "function\\(.+?\\)\("  (list 1 'font-lock-function-name-face))
+         (cons "function\\(.+?\\)("    (list 1 'font-lock-function-name-face))
          (cons "define\\([^:=]+?\\):"  (list 1 'font-lock-function-name-face))
          (cons "define\\([^:=]+?\\)="  (list 1 'font-lock-function-name-face))
-	 (cons "theorem\\([^:]+?\\):" (list 1 'font-lock-function-name-face))
+	 (cons "theorem\\([^:]+?\\):"  (list 1 'font-lock-function-name-face))
+	 (cons "lemma\\([^:]+?\\):"    (list 1 'font-lock-function-name-face))
 
-         (cons dkeywords-regex            'font-lock-keyword-face)
-         (cons dthmkeywords-regex         'font-lock-keyword-face)
-         (cons dpfkeywords-regex          'font-lock-keyword-face)
+         (cons keywords-regex                'font-lock-keyword-face)
+         (cons proof-keywords-regex          'font-lock-keyword-face)
 
-         (cons dprims-regex               'font-lock-constant-face)
-         (cons deduce-operators           'font-lock-constant-face)
-         (cons "\\<[0-9]+\\>"             'font-lock-constant-face)
+         (cons prims-syms-regex              'font-lock-constant-face)
+	 (cons prims-regex                   'font-lock-constant-face)
+         (cons "\\<[0-9]+\\>"                'font-lock-constant-face)
 
-         (cons dtypes-regex               'font-lock-builtin-face)
-         (cons dlibtypes-regex            'font-lock-type-face)
-         (cons dfunctions-regex           'font-lock-function-name-face)
-         ))
-      )
+         (cons types-regex                   'font-lock-builtin-face)
+         (cons lib-types-regex               'font-lock-type-face)
+         )))
 
 (defun deduce-comment-syntax-table ()
   "Set local syntax table, and re-color buffer."
@@ -171,11 +167,6 @@
     (beginning-of-line)
     (let ((ln (thing-at-point 'line t)))
       (apply #'+ (mapcar (lambda (x) (deduce--count-seps x ln))  syms)))))
-
-(defun deduce--word-regex (word)
-  "Construct deduce word regex"
-  (concat "^\\([^ \t]*[ \t]+\\)?" word "\\([ \t:]+.*\\)?$"))
-
 
 ;; TODO: equations ...
 (defun deduce-calculate-indentation ()
@@ -300,7 +291,7 @@
   (setq-local indent-line-function #'deduce-indent-line))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.pf\\'" . deduce-mode))
+(add-to-list 'auto-mode-alist '("\\.pf\\'"  . deduce-mode))
 
 (provide 'deduce-mode)
 
