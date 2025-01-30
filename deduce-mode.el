@@ -40,6 +40,10 @@
 
 ;;; Code:
 
+;; -----------------------
+;; Syntax Highlighting
+;; -----------------------
+
 (defvar deduce-operators nil "deduce operators")
 (setq deduce-operators "->\\|++\\|/\\||\\|&\\|\\\[+\\\]\\|\\\[o\\\]\\|(=\\|<=\\|>=\\|/=\\|≠\\|⊆\\|≤\\|<\\|≥\\|∈\\|∪\\|+\\|%\\|*\\|⨄\\|-\\|∩\\|∘\\|>")
 
@@ -81,9 +85,10 @@
         (setq dkeywords-regex (regexp-opt deduce-keywords 'words))
 
         (list
-         (cons "function\\(.+?\\)\(" (list 1 'font-lock-function-name-face))
-         (cons "define\\([^:]+?\\):" (list 1 'font-lock-function-name-face))
-         (cons "define\\([^:]+?\\)=" (list 1 'font-lock-function-name-face))
+         (cons "function\\(.+?\\)\("  (list 1 'font-lock-function-name-face))
+         (cons "define\\([^:]+?\\):"  (list 1 'font-lock-function-name-face))
+         (cons "define\\([^:]+?\\)="  (list 1 'font-lock-function-name-face))
+	 (cons "theorem\\([^:]+?\\):" (list 1 'font-lock-function-name-face))
 
          (cons dkeywords-regex            'font-lock-keyword-face)
          (cons dthmkeywords-regex         'font-lock-keyword-face)
@@ -99,11 +104,6 @@
          ))
       )
 
-(defun deduce-tab ()
-  "Insert tab character for tab key"
-  (interactive)
-  (insert "  "))
-
 (defun deduce-comment-syntax-table ()
   "Set local syntax table, and re-color buffer."
   (interactive)
@@ -112,6 +112,161 @@
     (modify-syntax-entry ?\n "> b" synTable)
     (set-syntax-table synTable)
     (font-lock-fontify-buffer)))
+
+;; -----------------------
+;; Indentation
+;; -----------------------
+
+(defun deduce--list-or (ls)
+  "fold or over ls"
+  (if (null ls) nil (or (car ls) (deduce--list-or (cdr ls)))))
+
+(defun deduce--previous-k-non-empty-line (k)
+  "Find the kth previous non-empty line"
+  (if (equal 0 k) 0
+    (let ((n -1))
+      (save-excursion
+	(beginning-of-line)
+	(if (bobp) 0
+	  (forward-line -1)
+	  (while (and (not (bobp))
+                      (string-empty-p
+		       (string-trim-right
+			(thing-at-point 'line t))))
+	    (setq n (- n 1))
+	    (forward-line -1))
+	  (+ n (deduce--previous-k-non-empty-line (- k 1))))))))
+
+(defun deduce--previous-line-match (str)
+  "Find the prvious line that matches str"
+  (save-excursion
+    (let ((n -1))
+      (forward-line -1)
+      (while (and (not (bobp))
+		  (not (string-match-p str (thing-at-point 'line t))))
+	(setq n (- n 1))
+	(forward-line -1))
+      (if (and (bobp)
+	       (not (string-match-p str (thing-at-point 'line t))))
+	  0
+	n))))
+
+(defun deduce--line-n-away (n)
+  "Go forward n lines and return the value of that line"
+  (save-excursion
+    (forward-line n)
+    (thing-at-point 'line t)))
+
+(defun deduce--indentation-of-line-n-away (n)
+  "Go forward n lines and return the tabbing of that line"
+  (save-excursion
+    (forward-line n)
+    (current-indentation)))
+
+(defun deduce--count-seps (sep str)
+  "Count the number of occurencses of sep in str"
+  (- (length (split-string str sep)) 1))
+
+(defun deduce--syms-at-line (syms n)
+  "Count the sum of occurences of each sym in syms at line n away"
+  (save-excursion
+    (forward-line n)
+    (beginning-of-line)
+    (let ((ln (thing-at-point 'line t)))
+      (apply #'+ (mapcar (lambda (x) (deduce--count-seps x ln))  syms)))))
+
+(defun deduce--word-regex (word)
+  "Construct deduce word regex"
+  (concat "^\\([^ \t]*[ \t]+\\)?" word "\\([ \t:]+.*\\)?$"))
+
+
+;; TODO: equations ...
+(defun deduce-calculate-indentation ()
+  "Calculates indentation of current line based off of text in current line and previous line"
+  (let* ((OPEN_BRACKET     '("{" "("))
+	 (CLOSE_BRACKET    '("}" ")"))
+	 (cur-line          (string-trim-left (thing-at-point 'line t)))
+	 (to-prev-line      (deduce--previous-k-non-empty-line 1))
+	 (prev-line         (if (equal to-prev-line 0) "" (string-trim-right (deduce--line-n-away to-prev-line))))
+	 (prev-indent       (if (equal to-prev-line 0) 0  (deduce--indentation-of-line-n-away to-prev-line)))
+	 (prev-opens        (if (equal to-prev-line 0) 0  (deduce--syms-at-line OPEN_BRACKET to-prev-line)))
+	 (prev-closes       (if (equal to-prev-line 0) 0  (deduce--syms-at-line CLOSE_BRACKET to-prev-line)))
+	 (cur-opens         (deduce--syms-at-line OPEN_BRACKET  0))
+	 (cur-closes        (deduce--syms-at-line CLOSE_BRACKET 0))
+	 (cur-close-start   (deduce--list-or (mapcar (lambda (x) (string-prefix-p x cur-line))  CLOSE_BRACKET)))
+	 (prev-close-start  (deduce--list-or
+			     (mapcar (lambda (x) (string-prefix-p x (string-trim-left prev-line))) CLOSE_BRACKET)))
+	 (to-prev-prev-line (deduce--previous-k-non-empty-line 2)) ;; used for checking equations
+	 (prev-prev-line    (if (equal to-prev-prev-line 0) "" (string-trim-right (deduce--line-n-away to-prev-prev-line))))
+	 (adjustment
+	  (cond
+	   ((string-match-p (deduce--word-regex "equations") prev-line)                ;; line after equations double tabbed
+	    2)
+	   ((string-match-p (deduce--word-regex "\\.\\.\\.") cur-line)                 ;; ... tab to align = signs
+	    0)
+	   ((or (string-match-p (deduce--word-regex "proof")   cur-line)               ;; proof and end should tab back
+		(string-match-p (deduce--word-regex "end")     cur-line))
+	    -1)
+	   ((and (or (string-match-p (deduce--word-regex "have") prev-line)            ;; have|suffices|conclude by tabbed
+		     (string-match-p (deduce--word-regex "suffices") prev-line)
+		     (string-match-p (deduce--word-regex "conclude") prev-line))
+		 (string-match-p (deduce--word-regex "by") cur-line))
+	    1)
+	   ((and (string-match-p (deduce--word-regex "by") prev-line)                  ;; untab after tabbed by line
+		 (not (string-match-p (deduce--word-regex "have") prev-line))
+		 (not (string-match-p (deduce--word-regex "suffices") prev-line))
+		 (not (string-match-p (deduce--word-regex "conclude") prev-line)))
+	    -1)
+	   ((or (string-match-p (deduce--word-regex "theorem") prev-line)              ;; theorem/proof introduce new tabbing
+		(string-match-p (deduce--word-regex "proof")   prev-line))
+	    1)
+     	   ((and cur-close-start (> prev-opens prev-closes))                           ;; starts with close so tab back 1
+	    0)
+	   (cur-close-start                                                            ;; starts with close but prev open
+	    -1)
+	   ((and (equal prev-opens 0) (equal prev-closes 0))                           ;; nothing above so keep indent
+	    0)
+	   (prev-close-start                                                           ;; untab one less than close diff
+	    (+ 1 (- prev-opens prev-closes)))
+	   (t                                                                          ;; otherwise adjust by difference
+	    (- prev-opens prev-closes))))
+	 (equations-line (deduce--previous-line-match (deduce--word-regex "equations")))
+	 (absolute-indent ;; used for equations
+	  (cond
+	   ((and (string-match-p (deduce--word-regex "equations") prev-prev-line)      ;; untab after equations
+		 (not (string-match-p (deduce--word-regex "\\.\\.\\.") cur-line)))
+	    (setq adjustment (- adjustment 2))
+	    nil)
+	   ((and (string-match-p (deduce--word-regex "\\.\\.\\.") prev-line)           ;; end of equations ...
+		 (not (string-match-p (deduce--word-regex "\\.\\.\\.") cur-line)))
+	    (deduce--indentation-of-line-n-away equations-line))
+	   ((and (string-match-p (deduce--word-regex "\\.\\.\\.") prev-line)           ;; middle of equations ...
+		 (string-match-p (deduce--word-regex "\\.\\.\\.") cur-line))
+	    (setq adjustment 0)
+	    nil)
+	   ((string-match-p (deduce--word-regex "\\.\\.\\.") cur-line)                 ;; tab first ... equations
+	    (let ((eq-line (deduce--previous-line-match "=")))
+	      (setq adjustment 0)
+	      (+ (- (string-match-p "=" (string-trim-left (deduce--line-n-away eq-line))) 4)
+		 (deduce--indentation-of-line-n-away eq-line))))
+	   (t nil))))
+    (if absolute-indent
+	(+ absolute-indent (* tab-width adjustment))
+      (+ prev-indent (* tab-width adjustment)))))
+
+(defun deduce-indent-line ()
+  "Indent the current line according to Deduce language rules."
+  (interactive)
+  (let* ((indent (max (deduce-calculate-indentation) 0))
+	 (n (max (- (current-column) (current-indentation)) 0)))
+    (cond
+     (indent (indent-line-to indent)
+	     (forward-char n))
+     (t (indent-line-to 0)))))
+
+;; -----------------------
+;; Load extension
+;; -----------------------
 
 (defun deduce-load ()
   (interactive)
@@ -145,10 +300,7 @@
   (setq default-tab-width 2)
   (setq-local comment-start "//")
   (setq-local comment-end "")
-  (setq indent-line-function nil)
-  (local-set-key (kbd "TAB") 'deduce-tab))
-
-;; (setq indent-line-function 'deduce-indent-line)
+  (setq-local indent-line-function #'deduce-indent-line))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.pf\\'" . deduce-mode))
