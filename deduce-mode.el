@@ -61,7 +61,7 @@
 (setq deduce-lib-types '("MultiSet" "Option" "Pair" "Set" "List" "Int" "Nat" "Pos"))
 
 (defvar deduce-keywords nil "deduce keywords")
-(setq deduce-keywords '("define" "function" "fun" "recursive" "switch" "case" "union" "if" "then" "else" "import" "generic" "assert" "associative" "have" "and" "or" "print" "private" "not" "some" "all"))
+(setq deduce-keywords '("define" "function" "fun" "recursive" "switch" "case" "union" "if" "then" "else" "import" "generic" "assert" "associative" "have" "and" "or" "print" "private" "not" "some" "all" "terminates" "recfun" "measure"))
 
 (defvar deduce-proof-keywords nil "deduce proof keywords")
 
@@ -87,6 +87,8 @@
         (list
          (cons "function\\(.+?\\)("    (list 1 'font-lock-function-name-face))
 	 (cons "recursive\\(.+?\\)("   (list 1 'font-lock-function-name-face))
+	 (cons "recfun\\(.+?\\)("      (list 1 'font-lock-function-name-face))
+	 (cons "fun\\(.+?\\)("         (list 1 'font-lock-function-name-face))
          (cons "define\\([^:=]+?\\):"  (list 1 'font-lock-function-name-face))
          (cons "define\\([^:=]+?\\)="  (list 1 'font-lock-function-name-face))
 	 (cons "theorem\\([^:]+?\\):"  (list 1 'font-lock-function-name-face))
