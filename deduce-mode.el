@@ -65,7 +65,7 @@
 
 (defvar deduce-proof-keywords nil "deduce proof keywords")
 
-(setq deduce-proof-keywords '("conclude" "suffices" "enough" "by" "rewrite" "replace" "conjunct" "induction" "where" "suppose" "with" "definition" "apply" "to" "cases" "obtain" "enable" "stop" "equations" "of" "arbitrary" "choose" "term" "from" "assume" "for" "recall" "transitive" "symmetric" "extensionality" "reflexive" "injective" "sorry" "help" "evaluate" "theorem" "lemma" "proof" "end"))
+(setq deduce-proof-keywords '("conclude" "suffices" "enough" "by" "replace" "conjunct" "induction" "where" "suppose" "with" "expand" "apply" "to" "cases" "obtain" "enable" "stop" "equations" "of" "arbitrary" "choose" "term" "from" "assume" "for" "recall" "transitive" "symmetric" "extensionality" "reflexive" "injective" "sorry" "help" "evaluate" "theorem" "lemma" "proof" "end"))
 
 
 (defun deduce--word-regex (word &optional no-boundaries)
