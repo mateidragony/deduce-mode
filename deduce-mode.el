@@ -58,7 +58,7 @@
 (setq deduce-types '("int" "bool" "fn" "type"))
 
 (defvar deduce-lib-types nil "deduce library types")
-(setq deduce-lib-types '("MultiSet" "Option" "Pair" "Set" "List" "Int" "Nat" "Pos"))
+(setq deduce-lib-types '("MultiSet" "Option" "Pair" "Set" "List" "Int" "UInt" "Nat" "Pos" "Option"))
 
 (defvar deduce-keywords nil "deduce keywords")
 (setq deduce-keywords '("define" "function" "fun" "recursive" "switch" "case" "union" "if" "then" "else" "import" "generic" "assert" "associative" "have" "and" "or" "print" "private" "opaque" "not" "some" "all" "terminates" "recfun" "measure"))
