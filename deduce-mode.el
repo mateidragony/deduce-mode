@@ -61,7 +61,7 @@
 (setq deduce-lib-types '("MultiSet" "Option" "Pair" "Set" "List" "Int" "UInt" "Nat" "Pos" "Option"))
 
 (defvar deduce-keywords nil "deduce keywords")
-(setq deduce-keywords '("define" "function" "fun" "recursive" "switch" "case" "union" "if" "then" "else" "import" "generic" "assert" "associative" "have" "and" "or" "print" "private" "opaque" "public" "not" "some" "all" "terminates" "recfun" "measure" "auto" "module"))
+(setq deduce-keywords '("define" "function" "fun" "recursive" "switch" "case" "union" "if" "then" "else" "import" "export" "generic" "assert" "associative" "have" "and" "or" "print" "private" "opaque" "public" "not" "some" "all" "terminates" "recfun" "measure" "auto" "module"))
 
 (defvar deduce-proof-keywords nil "deduce proof keywords")
 
