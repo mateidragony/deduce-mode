@@ -61,11 +61,11 @@
 (setq deduce-lib-types '("MultiSet" "Option" "Pair" "Set" "List" "Int" "UInt" "Nat" "Pos" "Option"))
 
 (defvar deduce-keywords nil "deduce keywords")
-(setq deduce-keywords '("define" "function" "fun" "recursive" "switch" "case" "union" "if" "then" "else" "import" "export" "generic" "assert" "associative" "have" "and" "or" "print" "private" "opaque" "public" "not" "some" "all" "terminates" "recfun" "measure" "auto" "module"))
+(setq deduce-keywords '("define" "function" "fun" "recursive" "switch" "case" "union" "if" "then" "else" "import" "export" "generic" "assert" "associative" "have" "and" "or" "print" "private" "opaque" "public" "not" "some" "all" "terminates" "recfun" "measure" "auto" "module" "relation" "predicate"))
 
 (defvar deduce-proof-keywords nil "deduce proof keywords")
 
-(setq deduce-proof-keywords '("conclude" "suffices" "show" "enough" "by" "replace" "conjunct" "induction" "where" "suppose" "with" "expand" "apply" "to" "cases" "contradict" "obtain" "stop" "equations" "of" "arbitrary" "choose" "term" "from" "assume" "for" "recall" "transitive" "symmetric" "extensionality" "reflexive" "injective" "sorry" "help" "evaluate" "simplify" "theorem" "lemma" "postulate" "proof" "end"))
+(setq deduce-proof-keywords '("conclude" "suffices" "show" "enough" "by" "replace" "conjunct" "induction" "inversion" "rule" "where" "suppose" "with" "expand" "apply" "to" "cases" "contradict" "obtain" "stop" "equations" "of" "arbitrary" "choose" "term" "from" "assume" "for" "recall" "transitive" "symmetric" "extensionality" "reflexive" "injective" "sorry" "help" "evaluate" "simplify" "theorem" "lemma" "postulate" "proof" "end"))
 
 
 (defun deduce--word-regex (word &optional no-boundaries)
